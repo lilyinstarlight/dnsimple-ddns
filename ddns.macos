@@ -1,0 +1,50 @@
+#!/bin/bash
+token='0123456789abcdefghijklmnopqrstuv'
+account=1010
+zone='example.com'
+arecord=5
+aaaarecord=6
+
+ifip=true
+
+code=0
+
+if [ "$arecord" ]; then
+  if $ifip; then
+    ipv4=$(route -v get 8.8.8.8 2>/dev/null | grep '^ default' | cut -d' ' -f6)
+    if echo "$ipv4" | grep -E '[a-z]' &>/dev/null; then
+      ipv4=$(host $ipv4 | cut -d' ' -f4)
+    fi
+  else
+    ipv4=$(curl -s4 icanhazip.com)
+  fi
+fi
+
+if [ -n "$ipv4" ]; then
+  response=$(curl -sSf -H "Authorization: Bearer $token" -H "Accept: application/json" -H "Content-Type: application/json" -X PATCH -d "{\"content\":\"$ipv4\"}" "https://api.dnsimple.com/v2/$account/zones/$zone/records/$arecord" 2>&1)
+  if [ $? != 0 ]; then
+    code=$((code+1))
+    echo 'IPv4 Update ('"${zone}"' ('"$arecord"') -> '"$ipv4"'): '"$response" >&2
+  fi
+fi
+
+if [ "$aaaarecord" ]; then
+  if $ifip; then
+    ipv6=$(route -v get 2001:4860:4860::8888 2>/dev/null | grep '^ default' | cut -d' ' -f6)
+    if echo "$ipv6" | grep -E '[a-z]' &>/dev/null; then
+      ipv6=$(host $ipv6 | cut -d' ' -f4)
+    fi
+  else
+    ipv6=$(curl -s6 icanhazip.com)
+  fi
+fi
+
+if [ -n "$ipv6" ]; then
+  response=$(curl -sSf -H "Authorization: Bearer $token" -H "Accept: application/json" -H "Content-Type: application/json" -X PATCH -d "{\"content\":\"$ipv6\"}" "https://api.dnsimple.com/v2/$account/zones/$zone/records/$aaaarecord" 2>&1)
+  if [ $? != 0 ]; then
+    code=$((code+1))
+    echo 'IPv6 Update ('"${zone}"' ('"$aaaarecord"') -> '"$ipv6"'): '"$response" >&2
+  fi
+fi
+
+exit $code
