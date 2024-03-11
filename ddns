@@ -11,7 +11,7 @@ if [ "$arecord" ]; then
   fi
 
   if [ "$ipv4" ]; then
-    if ! response="$(curl -sSf -H "Authorization: Bearer $token" -H "Accept: application/json" -H "Content-Type: application/json" -X PATCH -d "{\"content\":\"$ipv4\"}" "https://api.dnsimple.com/v2/$account/zones/$zone/records/$arecord" 2>&1)"; then
+    if ! response="$(printf 'Authorization: Bearer %s' "$token" | curl -sSf -H "@-" -H "Accept: application/json" -H "Content-Type: application/json" -X PATCH -d "{\"content\":\"$ipv4\"}" "https://api.dnsimple.com/v2/$account/zones/$zone/records/$arecord" 2>&1)"; then
       code="$((code+1))"
       echo 'IPv4 Update ('"${zone}"' ('"$arecord"') -> '"$ipv4"'): '"$response" >&2
     fi
@@ -26,7 +26,7 @@ if [ "$aaaarecord" ]; then
   fi
 
   if [ "$ipv6" ]; then
-    if ! response="$(curl -sSf -H "Authorization: Bearer $token" -H "Accept: application/json" -H "Content-Type: application/json" -X PATCH -d "{\"content\":\"$ipv6\"}" "https://api.dnsimple.com/v2/$account/zones/$zone/records/$aaaarecord" 2>&1)"; then
+    if ! response="$(printf 'Authorization: Bearer %s' "$token" | curl -sSf -H "@-" -H "Accept: application/json" -H "Content-Type: application/json" -X PATCH -d "{\"content\":\"$ipv6\"}" "https://api.dnsimple.com/v2/$account/zones/$zone/records/$aaaarecord" 2>&1)"; then
       code="$((code+1))"
       echo 'IPv6 Update ('"${zone}"' ('"$aaaarecord"') -> '"$ipv6"'): '"$response" >&2
     fi
